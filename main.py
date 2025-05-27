@@ -1,6 +1,3 @@
-import gurobipy
-
-
 import pandas as pd
 from gurobipy import Model, GRB, quicksum
 def cargar_datos():
@@ -56,7 +53,8 @@ def cargar_datos():
     data["J"] = range(len(data["c_j"]))
     return data
     #raise NotImplementedError("Implementa esta función para cargar los datos.")
-    #revisar cuando se tengan los archivos 
+    #####revisar cuando se tengan los archivos 
+    ## COSAS QUE PONER EN DATA: v, t, r, p
 def construir_modelo(data):
     """
     Esta función debe construir el modelo de optimización utilizando Gurobi
@@ -64,9 +62,22 @@ def construir_modelo(data):
     """
     model = Model()
     model.setParam("TimeLimit", 60)
-    x = model.addVars(data["I"], vtype = GRB.CONTINUOUS, name = "x_i")
-    y = model.addVars(data["J"], vtype = GRB.CONTINUOUS, name = "y_j")
-    w = model.addVars(data["I"], vtype = GRB.BINARY, name = "w_i")
+    a = model.addVars(data["v"],data["t"], vtype = GRB.CONTINUOUS, name = "a_vt")
+    x = model.addVars(data["v"], data["p"], data["t"], vtype = GRB.INTEGER, name = "x_vpt")
+    y = model.addVars(data["v"], data["p"], data["t"], vtype = GRB.INTEGER, name = "y_vpt")
+    z = model.addVars(data["v"], data["p"], data["t"], vtype = GRB.INTEGER, name = "z_vpt")
+    B = model.addVars(data["t"], data["v"], data["r"], vtype = GRB.BINARY, name = "B^r_tv")
+    e = model.addVars(data["t"], data["v"], data["r"], vtype = GRB.BINARY, name = "e_tvr")
+    w = model.addVars(data["t"], data["v"], data["r"], vtype = GRB.CONTINUOUS, name = "w_tvr")
+    N = model.addVars(data["t"], data["v"], vtype = GRB.INTEGER, name = "N_tv")
+    s = model.addVars(data["t"], data["v"], vtype = GRB.CONTINUOUS, name = "s_tv")
+    PI = model.addVars(data["t"], data["v"], vtype = GRB.BINARY, name = "e_tvr")
+    H = model.addVars(data["t"], data["v"], vtype = GRB.CONTINUOUS, name = "H_tv")
+    ### NO esta definida en la nauraleza
+    q = model.addVars(data["t"], data["v"], data["r"], vtype = GRB.BINARY, name = "q_tvr")
+    ### NO ESTA DEFINIDA EN LA NATURELEZA
+    
+
     model.update()
     model.addConstrs((x[i] <= data["M"] * w[i] for i in data["I"] ), name = "R1" )
     model.addConstrs(((quicksum(data["a_ij"][i][j]*x[i] for i in data["I"]) <= data["b_j"][j] + y[j]) for j in data["J"]), name = "R2")
