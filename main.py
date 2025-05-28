@@ -1,22 +1,20 @@
 import pandas as pd
 from gurobipy import Model, GRB, quicksum
 def cargar_datos():
-    """
-     Esta función debe leer los 9 archivos .csv de la instancia y devolver
-    un diccionario con todos los parámetros necesarios para construir el modelo.
-    """
+
+
     data = {}
     nombres_archivos = [
-        ("d_pt", "litros_demandados.csv"),
-        ("Q_tv" , "ingreso_por_unidad.csv"),
-        ("e_v", "material_requerido.csv"),
-        ("L_vt", "material_disponible.csv"),
-        ("B^y_tp", "costo_material.csv"),
-        ("D^h_tv", "costo_variable.csv"),
-        ("N_r", "costo_fijo.csv"),
-        ("X", "presupuesto_materiales.csv"),
-        ("Beta", "maximo_productos.csv"),
-        ("Gamma","archivo.csv"),
+        ("d_pt", "d_pt.csv"),
+        ("Q_tv" , "q_tv.csv"),
+        ("e_v", "epsilon_v.csv"),
+        ("L_vt", "L_t.csv"),
+        ("B^y_tp", "v_t.csv"),             #cambiar nombre pq hay una variable igual 
+        ("D^h_tv", ""),
+        ("N_r", ""),
+        ("X", ""),
+        ("Beta", ""),
+        ("gamma",""),
         ("K^r_tv",""),
         ("K^y_tvp", ""),
         ("K^z_tvp", ""),
@@ -54,7 +52,7 @@ def cargar_datos():
     return data
     #raise NotImplementedError("Implementa esta función para cargar los datos.")
     #####revisar cuando se tengan los archivos 
-    ## COSAS QUE PONER EN DATA: v, t, r, p
+    ## COSAS QUE PONER EN DATA: V, T, R, P y Tau
 def construir_modelo(data):
     """
     Esta función debe construir el modelo de optimización utilizando Gurobi
@@ -62,7 +60,7 @@ def construir_modelo(data):
     """
     model = Model()
     model.setParam("TimeLimit", 60)
-    a = model.addVars(data["V"],data["T"], vtype = GRB.CONTINUOUS, name = "a_vt")
+    alpha = model.addVars(data["T"],data["V"], vtype = GRB.CONTINUOUS, name = "alpha_vt")
     x = model.addVars(data["T"], data["V"], data["P"], vtype = GRB.INTEGER, name = "x_tvp")
     y = model.addVars(data["T"], data["V"], data["P"], vtype = GRB.INTEGER, name = "y_tvp")
     z = model.addVars(data["T"], data["V"], data["P"], vtype = GRB.INTEGER, name = "z_tvp")
@@ -74,51 +72,69 @@ def construir_modelo(data):
     PI = model.addVars(data["T"], data["V"], vtype = GRB.BINARY, name = "e_tvr")
     H = model.addVars(data["T"], data["V"], vtype = GRB.CONTINUOUS, name = "H_tv")
     ### NO esta definida en la nauraleza
-    q = model.addVars(data["T"], data["V"], data["R"], vtype = GRB.BINARY, name = "q_tvr")
+    q = model.addVars(data["T"], data["V"], data["Tau"], vtype = GRB.BINARY, name = "q_tvr")
     ### NO ESTA DEFINIDA EN LA NATURELEZA
     
-
+    ### echo = #
     model.update()
-    model.addConstrs((x[i] <= data["M"] * w[i] for i in data["I"] ), name = "1" ) 
+    model.addConstrs((x[i] <= data["M"] * w[i] for i in data["I"]), name = "1" ) 
 
-    model.addConstrs((w[t,v,r] <= a[t,v] for t in data["T"] for v in data["V"] for r in data["R"]), name = "2")#echo 
+    model.addConstrs((w[t,v,r] <= alpha[t,v] for t in data["T"] for v in data["V"] for r in data["R"]), name = "2")# 
 
-    model.addConstrs((w[i] + w[k-1] <= 1 for i in data["I"] for k in data["P_i"][i]), name = "3")
+    model.addConstrs((w[t,v,r] <= data["M"] * e[t,v,r] for t in data["T"] for v in data["V"] for r in data["R"]), name = "3")#
 
-    model.addConstr((quicksum(y[j] * data["c_j"][j] for j in data["J"])) <=data["W"], name = "R4")
+    model.addConstr((w[t,v,r] >= alpha[t,v] - data["M"] * (1-e[t,v,r]) for t in data["T"] for v in data["V"] for r in data["R"]), name = "4")#
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "6")
+    model.addConstr((w[t,v,r] >= 0 for t in data["T"] for v in data["V"] for r in data["R"]), name = "5")#  
 
-    model.addConstr((x[t-1,v,p] + y[1,v,p] == x[t,v,p] + z[t,v,p] for t in data["T"] for v in data["V"] for p in data["P"]), name = "7")   #echo 
+    model.addConstr((quicksum(e[t,v,r] for r in data["R"]) == 1 for v in data["V"] for t in data["T"]), name = "6")#
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((x[t-1,v,p] + y[1,v,p] == x[t,v,p] + z[t,v,p] for t in data["T"] for v in data["V"] for p in data["P"]), name = "7")   #
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((x[0,v,p] + y[t,v,p] == x[t,v,p] + z[t,v,p] for t in data["T"] for v in data["V"] for p in data["P"]), name = "8")#
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "9")
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((quicksum(b[t,v,r] for r in data["R"]) <= 1 for t in data["T"] for v in data["V"]), name = "10")##
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((e[t,v,r] >= b[t,v,r] for t in data["T"] for v in data["V"] for r in data["R"]), name = "11")###
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "12")
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "13")
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "14")
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "15") 
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((y[t,v,p] <= data["M"] * data["B^y_tp"][t,v] for t in data["T"] for v in data["V"] for p in data["P"]), name = "16") #
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((H[t,v] >= data["D^h_tv"][t,v] for t in data["T"] for v in data["V"]), name = "17")#
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "R5")
+    model.addConstr((H[0,v] >= data["D^h_tv"][0,v] for v in data["V"]), name = "18")#
+
+    model.addConstr((H[t,v] >= data["X"] * N[t,v] + data["beta"] * s[t,v] - data["gamma"] * PI[t,v] for v in data["V"] for t in data["T"]), name = "19")#
+
+    model.addConstr((quicksum(y[t,v,p] for P in data["P"]) <= PI[t,v] * data["M"] for v in data["V"] for t in data["T"]), name = "20")#
+
+    model.addConstr((quicksum(y[t,v,p] for P in data["P"]) <= PI[t,v] * data["M"]), name = "R5")
+
+    model.addConstr((quicksum(z[t,v,p] for P in data["P"]) <= PI[t,v] * data["M"] for v in data["V"] for t in data["T"]), name = "22")#
+
+    model.addConstr((s[t,v] * data["A_v"][v] == quicksum(x[t,v,p] * data["a_p"][p] for p in data["P"]) for t in data["T"] for v in data["V"]), name = "23")#
+
+    model.addConstr((data["A_v"][v] >= quicksum(x[t,v,p] * data["a_p"][p] for p in data["P"]) for t in data["T"] for v in data["V"]), name = "24")#
+
+    model.addConstr((quicksum(x[t,v,p] * data["chi_tp"][t,p] for p in data["P"]) >=  data["M"] * q[t,v,tau] for t in data["T"] for v in data["V"] for tau in data["Tau"]), name = "25")#
+
+    model.addConstr((quicksum(x[t,v,p] * data["chi_tp"][t,p] for p in data["P"]) <= q[t,v,tau] for t in data["T"] for v in data["V"] for tau in data["Tau"]), name = "26")#
+
+    model.addConstr((N[t,v] == quicksum(q[t,v,tau] for tau in data["Tau"]) for v in data["V"] for t in data["T"]), name = "27") #
 
 
-    f_objetivo = quicksum((data["r_i"][i] - data["rho_i"][i]) * x[i] - data["F_i"][i] * w[i] for i in data["I"]) - quicksum(data["c_j"][j] * y[j] for j in data["J"])
+    f_objetivo = quicksum(quicksum(alpha[t,v] for t in data["T"]) for v in data["V"]) ####
 
-    model.setObjective(f_objetivo, GRB.MAXIMIZE)
+    model.setObjective(f_objetivo, GRB.MINIMIZE) #
 
     return model
  #raise NotImplementedError("Implementa esta función para construir el modelo.")
