@@ -77,7 +77,7 @@ def construir_modelo(data):
     
     ### echo = #
     model.update()
-    model.addConstrs((x[i] <= data["M"] * w[i] for i in data["I"]), name = "1" ) 
+    model.addConstrs((data["e_v"][v] * quicksum(data["N_r"][r] * w[t,v,r]) >= quicksum(x[t,v,p] * data["d_pt"][p,t]) - data["L_tv"][t,v] for v in data["V"] for t in data["T"]), name = "1" )# 
 
     model.addConstrs((w[t,v,r] <= alpha[t,v] for t in data["T"] for v in data["V"] for r in data["R"]), name = "2")# 
 
@@ -93,17 +93,17 @@ def construir_modelo(data):
 
     model.addConstr((x[0,v,p] + y[t,v,p] == x[t,v,p] + z[t,v,p] for t in data["T"] for v in data["V"] for p in data["P"]), name = "8")#
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "9")
+    model.addConstr((data["Q_tv"][t,v] >= quicksum(B[t,v,r] * data["K^r_tv"] for r in data["R"]) + quicksum(y[t,v,p] * data["K^y_tv"] + z[t,v,p] * data["K^z_tv"]) for t in data["T"] for v in data["V"]), name = "9") # 
 
     model.addConstr((quicksum(b[t,v,r] for r in data["R"]) <= 1 for t in data["T"] for v in data["V"]), name = "10")##
 
     model.addConstr((e[t,v,r] >= b[t,v,r] for t in data["T"] for v in data["V"] for r in data["R"]), name = "11")###
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "12")
+    model.addConstr((e[t,v,r] <= b[t,v,r] + 1- quicksum(b[t, v, r_primo] for r_primo in data["R"] if r_primo != r) for t in data["T"] for r in data["R"] if r_primo != r), name = "12")# listo pero revisar si corre
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "13")
+    model.addConstr((e[t,v,r] <= e[t-1,v,r] + quicksum(b[t, v, r_primo] for r_primo in data["R"] if r_primo != r) for t in data["T"] for r in data["R"] if r_primo != r), name = "13")# listo pero revisar si corre
 
-    model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "14")
+    model.addConstr((e[t,v,r] >= e[t-1,v,r] - quicksum(b[t, v, r_primo] for r_primo in data["R"] if r_primo != r) for t in data["T"] for r in data["R"] if r_primo != r), name = "13")# listo pero revisar si corre
 
     model.addConstr((quicksum(w[i] for i in data["I"]) <= data["N"]), name = "15") 
 
@@ -117,7 +117,7 @@ def construir_modelo(data):
 
     model.addConstr((quicksum(y[t,v,p] for P in data["P"]) <= PI[t,v] * data["M"] for v in data["V"] for t in data["T"]), name = "20")#
 
-    model.addConstr((quicksum(y[t,v,p] for P in data["P"]) <= PI[t,v] * data["M"]), name = "R5")
+    model.addConstr((quicksum(y[t,v,p] for P in data["P"]) <= data["b^y_tp"][t,v] * data["M"] for v in data["V"] for t in data["T"]), name = "21")#
 
     model.addConstr((quicksum(z[t,v,p] for P in data["P"]) <= PI[t,v] * data["M"] for v in data["V"] for t in data["T"]), name = "22")#
 
