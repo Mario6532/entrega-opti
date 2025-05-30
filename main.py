@@ -34,11 +34,11 @@ def cargar_datos():
         
         if parametro == "indice":
             data["nombre_p"] = dict(zip(df["Planta"], df["Nombre Común"]))
-            data["Plantas"] = set(df["Planta"].tolist())
+            data["P"] = set(df["Planta"].tolist())
 
         if parametro == "estrato":
             data["estrato_p"] = dict(zip(df["Planta"], df["Estrato"]))
-            data["Estratos"] = set(df["Estrato"].tolist())
+            data["Tau"] = set(df["Estrato"].tolist())
 
         if parametro == "d_pt":
             data["d_pt"] = {}
@@ -51,14 +51,14 @@ def cargar_datos():
                 if planta not in data["d_pt"]:
                     data["d_pt"][planta] = {}
                 data["d_pt"][planta][estacion] = litros
-            data["Estaciones"] = estaciones #Estaciones o Periodos
+            data["T"] = estaciones #Estaciones o Periodos
 
         if parametro == "Q_t":
             data["Q_t"] = dict(zip(df["Estación"], df["Presupuesto (pesos)"]))
 
         if parametro == "Epsilon_v":
             data["Epsilon_v"] = dict(zip(df["Area Verde"], df["Capacidad de infiltración del suelo"]))
-            data["Areas_Verdes"] = set(df["Area Verde"].tolist())
+            data["V"] = set(df["Area Verde"].tolist())
 
         if parametro == "L_t":
             data["L_t"] = dict(zip(df["Estación"], df["Litros de agua aportados por lluvia"]))  
@@ -81,7 +81,7 @@ def cargar_datos():
 
         if parametro == "Nabla_r":
             data["Nabla_r"] = dict(zip(df["Tipo  riego"], df["Eficiencia"]))
-            data["Riegos"] = set(df["Tipo  riego"].tolist()) 
+            data["R"] = set(df["Tipo  riego"].tolist()) 
 
         if parametro == "Chi":
             df = pd.read_csv(ruta, header=None)
@@ -120,6 +120,8 @@ def cargar_datos():
                 for tau in range(1, 5):  # Estratos del 1 al 4
                     col = f"si pertenece a estrato {tau}"
                     data["ζ_τp"][planta][tau] = int(fila[col])
+    
+    data["M"] = 100000000000000000000000
 
     return data
 
