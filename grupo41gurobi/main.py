@@ -25,7 +25,7 @@ def cargar_datos():
         ("R_v", "data/R_v.csv"),
         ("A_v", "data/A_v.csv"),
         ("a_p", "data/a_p.csv"),
-        ("ζ_τp", "data/ζ_τp.csv"),
+        ("dz_tau_p", "data/dz_tau_p.csv"),
         ("x_pv0", "data/x_pv0.csv"),
         ("e_0vr", "data/e_0vr.csv"),
 ]
@@ -108,16 +108,16 @@ def cargar_datos():
         if parametro == "a_p":
             data["a_p"] = dict(zip(df["planta"], df["superficie que cubre en m^2"]))
 
-        if parametro == "ζ_τp":
+        if parametro == "dz_tau_p":
             df = pd.read_csv(ruta)
-            data["ζ_τp"] = {}
+            data["dz_tau_p"] = {}
 
             for _, fila in df.iterrows():
                 planta = int(fila["planta"])
-                data["ζ_τp"][planta] = {}
+                data["dz_tau_p"][planta] = {}
                 for tau in range(1, 5):  # Estratos del 1 al 4
                     col = f"si pertenece a estrato {tau}"
-                    data["ζ_τp"][planta][tau] = int(fila[col])
+                    data["dz_tau_p"][planta][tau] = int(fila[col])
         
         if parametro == "x_pv0":
             df = pd.read_csv(ruta)
@@ -231,9 +231,9 @@ def construir_modelo(data):
 
     [model.addConstr((data["A_v"][v] >= quicksum(x[t,v,p] * data["a_p"][p] for p in data["P"]) ), name = "23")for t in data["T"] for v in data["V"]]
 
-    [model.addConstr((quicksum(x[t,v,p] * data["ζ_τp"][p][tau] for p in data["P"]) <=  data["M"] * q[t,v,tau]), name = "24")for t in data["T"] for v in data["V"] for tau in data["Tau"]]
+    [model.addConstr((quicksum(x[t,v,p] * data["dz_tau_p"][p][tau] for p in data["P"]) <=  data["M"] * q[t,v,tau]), name = "24")for t in data["T"] for v in data["V"] for tau in data["Tau"]]
 
-    [model.addConstr((quicksum(x[t,v,p] * data["ζ_τp"][p][tau] for p in data["P"]) >= q[t,v,tau] ), name = "25")for t in data["T"] for v in data["V"] for tau in data["Tau"]]
+    [model.addConstr((quicksum(x[t,v,p] * data["dz_tau_p"][p][tau] for p in data["P"]) >= q[t,v,tau] ), name = "25")for t in data["T"] for v in data["V"] for tau in data["Tau"]]
 
     [model.addConstr((N[t,v] == quicksum(q[t,v,tau] for tau in data["Tau"])), name = "26")for v in data["V"] for t in data["T"]] #
 
