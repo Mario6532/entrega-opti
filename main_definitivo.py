@@ -5,8 +5,8 @@ from funcion_resolver_modelo import resolver_modelo
 
 def main():
     data = cargar_datos()
-    for i in data:
-        print (i, "----->", data[i])
+    #for i in data:
+    #    print (i, "----->", data[i])
     model = construir_modelo(data)
     resultado = resolver_modelo(model)
     #imprimir_resultados(resultado, data)

@@ -85,4 +85,6 @@ def construir_modelo(data):
 
     model.setObjective(f_objetivo, GRB.MINIMIZE) #
 
+    print ("\n SE CREA EL MODELO\n")
+
     return model

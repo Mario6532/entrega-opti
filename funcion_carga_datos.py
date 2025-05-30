@@ -123,4 +123,6 @@ def cargar_datos():
     
     data["M"] = 100000000000000000000000
 
+    print ("\n SE CARGAN LOS DATOS\n")
+
     return data
