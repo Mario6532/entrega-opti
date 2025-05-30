@@ -1,0 +1,22 @@
+Comentario
+R1-5: por qué tienen la necesidad de la variable w en vez de ocupar directamente la variable alfa?
+R6, R8, R9, R10, R11, R12: bien
+R7: bien
+R13: bien
+R14: bien (cambiada)
+R15: bien
+R16: bien
+R17 y R18: MODIFICAMOS 17 Y ELIMINAMOS 18 cumple con su objetivo, pero porqué para partir debe ser mayor a un mínimo?
+R19: bien definida, pero no definen N correctamente para que funcione (CREEMOS QUE SI)
+R20-22: ***GUROBI*** deben especificar que M es un numero suficientemente grande, falta hacer que si pi=1 hay intervención ya que solo se hace que cuando pi=0 es que no hay intervención
+R23: bien
+R24: bien definida, pero quizás no es estrictamente necesaria
+R25: bien
+R26: bien
+
+Les deje unos comentarios en el informe de errores en la notación
+
+NOSOTROS
+
+-arreglamos lo k
+-riego por area (consideramos que cuando cambiamos el riego  lo cambiamos en toda la plaza)
