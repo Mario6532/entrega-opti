@@ -29,7 +29,7 @@ def construir_modelo(data):
 
     #Seleccion unica de Riego (6)
     model.addConstrs(
-        (quicksum(e[t][v][r] for r in data["Riegos"]) == 1
+        (quicksum(e[t, v ,r] for r in data["Riegos"]) == 1
         for t in data["Estaciones"]
         for v in data["Areas_Verdes"]),
         name="R6"

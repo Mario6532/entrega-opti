@@ -1,6 +1,7 @@
 import pandas as pd
 from gurobipy import Model, GRB, quicksum
-def cargar_datos():
+from main import cargar_datos
+def cargar_datos_old():
 
 
     data = {}
@@ -53,6 +54,7 @@ def cargar_datos():
     #raise NotImplementedError("Implementa esta función para cargar los datos.")
     #####revisar cuando se tengan los archivos 
     ## COSAS QUE PONER EN DATA: V, T, R, P y Tau
+
 def construir_modelo(data):
     """
     Esta función debe construir el modelo de optimización utilizando Gurobi
@@ -167,6 +169,6 @@ def main():
         print (i, "----->", data[i])
     model = construir_modelo(data)
     resultado = resolver_modelo(model)
-    imprimir_resultados(resultado, data)
+    #imprimir_resultados(resultado, data)
 if __name__ == "__main__":
     main()
