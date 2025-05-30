@@ -18,15 +18,25 @@ def construir_modelo(data):
     w = model.addVars(data["T"], data["V"], data["R"], vtype = GRB.CONTINUOUS, name = "w_tvr")
     N = model.addVars(data["T"], data["V"], vtype = GRB.INTEGER, name = "N_tv")
     s = model.addVars(data["T"], data["V"], vtype = GRB.CONTINUOUS, name = "s_tv")
-    PI = model.addVars(data["T"], data["V"], vtype = GRB.BINARY, name = "e_tvr")
+    PI = model.addVars(data["T"], data["V"], vtype = GRB.BINARY, name = "PI_tv")
     H = model.addVars(data["T"], data["V"], vtype = GRB.CONTINUOUS, name = "H_tv")
     ### NO esta definida en la nauraleza
-    q = model.addVars(data["T"], data["V"], data["Tau"], vtype = GRB.BINARY, name = "q_tvr")
+    q = model.addVars(data["T"], data["V"], data["Tau"], vtype = GRB.BINARY, name = "q_tv_tau")
     ### NO ESTA DEFINIDA EN LA NATURELEZA
     
     ### echo = #
     model.update()
+    [model.addConstr( x[t,v,p] >= 0 , name = "nv1") for t in data["T"] for v in data["V"] for p in data["P"]]
+    [model.addConstr( y[t,v,p] >= 0 , name = "nv2") for t in data["T"] for v in data["V"] for p in data["P"]]
+    [model.addConstr( z[t,v,p] >= 0 , name = "nv3") for t in data["T"] for v in data["V"] for p in data["P"]]
+    [model.addConstr( w[t,v,r] >= 0 , name = "nv4") for t in data["T"] for v in data["V"] for r in data["R"]]
+    [model.addConstr( N[t,v] >= 0 , name = "nv1") for t in data["T"] for v in data["V"]]
+    [model.addConstr( alpha[t,v] >= 0 , name = "nv1") for t in data["T"] for v in data["V"]]
+    [model.addConstr( s[t,v] >= 0 , name = "nv1") for t in data["T"] for v in data["V"]]
+    [model.addConstr( H[t,v] >= 0 , name = "nv1") for t in data["T"] for v in data["V"]]
+    
     [model.addConstr(data["Epsilon_v"][v] * quicksum(data["Nabla_r"][r] * w[t,v,r] for r in data["R"]) >= quicksum(x[t,v,p] * data["d_pt"][p][t] for p in data["P"]) - data["L_t"][t] , name="1") for v in data["V"] for t in data["T"]]
+    #[model.addConstr(data["Epsilon_v"][v] * quicksum(data["Nabla_r"][r] * w[t,v,r] for r in data["R"]) >= quicksum(x[t,v,p] * data["d_pt"][p][t] for p in data["P"]), name="1") for v in data["V"] for t in data["T"]]
 
     [model.addConstr((w[t,v,r] <= alpha[t,v]), name = "2") for t in data["T"] for v in data["V"] for r in data["R"]] 
 
@@ -38,9 +48,9 @@ def construir_modelo(data):
 
     [model.addConstr((quicksum(e[t,v,r] for r in data["R"]) == 1), name = "6") for v in data["V"] for t in data["T"]]
 
-    [model.addConstr((x[t-1,v,p] + y[1,v,p] == x[t,v,p] + z[t,v,p]), name = "7")for t in data["T"] if t > 1 for v in data["V"] for p in data["P"] ]  #ver en el latex
+    [model.addConstr((x[t-1,v,p] + y[t,v,p] == x[t,v,p] + z[t,v,p]), name = "7")for t in data["T"] if t > 1 for v in data["V"] for p in data["P"] ]  #ver en el latex
 
-    [model.addConstr((x[1,v,p] + y[1,v,p] == x[1,v,p] + z[1,v,p]), name = "8") for v in data["V"] for p in data["P"]] #####?????   revisar los 0 y 1 en la x sobre todo 
+    [model.addConstr((data["x_pv0"][p][v] + y[1,v,p] == x[1,v,p] + z[1,v,p]), name = "8") for v in data["V"] for p in data["P"]] 
 
     [model.addConstr((data["Q_t"][t] >= quicksum(b[t,v,r] * data["K_r"][r] * data["A_v"][v] for r in data["R"]) + quicksum(y[t,v,p] * data["K_p"][p] for p in data["P"])), name = "9") for t in data["T"] for v in data["V"]] # 
 
@@ -54,15 +64,14 @@ def construir_modelo(data):
 
     [model.addConstr((b[t, v, r] <= 1- e[t-1,v,r]), name = "14") for r in data["R"] for t in data["T"] for v in data["V"] if t > 1]# listo pero revisar si corre
 
-    [model.addConstr((quicksum(e[1,v,r] for r in data["R"])  == 1), name = "15") for v in data["V"]] 
+    [model.addConstr((quicksum(data["e_0vr"][v][r] for r in data["R"])  == 1), name = "15") for v in data["V"]]
 
     [model.addConstr((y[t,v,p] <= data["M"] * data["B_pt"][p][t]), name = "16") for t in data["T"] for v in data["V"] for p in data["P"]]#VOY ACA
 
-    #[model.addConstr((H[max(data["T"]),v] >= data["D_tv"][max(data["T"])][v]), name = "17") for v in data["V"]]#####DUdable
-
-    ####model.addConstr((H[0,v] >= data["D_tv"][0,v] for v in data["V"]), name = "18")#DUDABLE 
+    [model.addConstr((H[max(data["T"]),v] >= data["D"]), name = "17") for v in data["V"]]
 
     [model.addConstr((H[t,v] == data["Chi"] * N[t,v] + data["Beta"] * s[t,v] - data["gamma"] * PI[t,v]), name = "18") for v in data["V"] for t in data["T"]]#
+    #[model.addConstr((H[t,v] == data["Chi"] * N[t,v] + data["Beta"] * s[t,v]), name = "18") for v in data["V"] for t in data["T"]]#
 
     [model.addConstr((quicksum(y[t,v,p] for p in data["P"]) <= PI[t,v] * data["M"]), name = "19")for v in data["V"] for t in data["T"]]#
 

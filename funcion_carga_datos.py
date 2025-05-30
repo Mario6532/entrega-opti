@@ -9,25 +9,27 @@ def cargar_datos():
     un diccionario con todos los parámetros necesarios para construir el modelo.
     """
     nombres_archivos = [
-        ("indice", "data/carpeta_salida/indice.csv"), #YHEA
-        ("estrato", "data/carpeta_salida/estrato.csv"), #YHEA
-        ("d_pt", "data/carpeta_salida/d_pt.csv"), #YHEA
-        ("Q_t", "data/carpeta_salida/Q_t.csv"), #YHEA ***LO EDITE DEL ORIGINAL, CAMBIAR RESTRICCION EN LATEX DE PRESUPUESTO (9)***
-        ("Epsilon_v", "data/carpeta_salida/Epsilon_v.csv"), #YHEA
-        ("L_t", "data/carpeta_salida/L_t.csv"), #YHEA
-        ("B_pt", "data/carpeta_salida/B_pt.csv"), #YHEA
-        ("D_tv", "data/carpeta_salida/D_tv.csv"), #YHEA ***NO LO UTILIZAMOS POR COMO MODIFICAMOS EL MODELO***
-        ("Nabla_r", "data/carpeta_salida/Nabla_r.csv"), #YHEA
-        ("Chi", "data/carpeta_salida/Chi.csv"), #YHEA
-        ("Beta", "data/carpeta_salida/Beta.csv"), #YHEA
-        ("gamma", "data/carpeta_salida/gamma.csv"), #YHEA
-        ("K_r", "data/carpeta_salida/K_r.csv"), #YHEA
-        ("K_p", "data/carpeta_salida/K_p.csv"), #YHEA
-        ("R_v", "data/carpeta_salida/R_v.csv"), #YHEA
-        ("A_v", "data/carpeta_salida/A_v.csv"), #YHEA
-        ("a_p", "data/carpeta_salida/a_p.csv"), #YHEA
-        ("ζ_τp", "data/carpeta_salida/ζ_τp.csv"), #YHEA
-    ]
+        ("indice", "data/carpeta_salida/Indice asignado a cada planta.csv"),
+        ("estrato", "data/carpeta_salida/Estrato de cada planta.csv"),
+        ("d_pt", "data/carpeta_salida/d_pt.csv"),
+        ("Q_t", "data/carpeta_salida/Q_tv.csv"),
+        ("Epsilon_v", "data/carpeta_salida/Epsilon_v.csv"),
+        ("L_t", "data/carpeta_salida/L_t.csv"),
+        ("B_pt", "data/carpeta_salida/B_pt.csv"),
+        ("D_tv", "data/carpeta_salida/D_tv.csv"),
+        ("Nabla_r", "data/carpeta_salida/Nabla_r.csv"),
+        ("Chi", "data/carpeta_salida/Chi.csv"),
+        ("Beta", "data/carpeta_salida/Beta.csv"),
+        ("gamma", "data/carpeta_salida/Gamma.csv"),
+        ("K_r", "data/carpeta_salida/K_r.csv"),
+        ("K_p", "data/carpeta_salida/K_p.csv"),
+        ("R_v", "data/carpeta_salida/R_v.csv"),
+        ("A_v", "data/carpeta_salida/A_v.csv"),
+        ("a_p", "data/carpeta_salida/a_p.csv"),
+        ("ζ_τp", "data/carpeta_salida/ζ_τp.csv"),
+        ("x_pv0", "data/carpeta_salida/x_pv0.csv"),
+        ("e_0vr", "data/carpeta_salida/e_0vr.csv"),
+]
 
     for parametro, ruta in nombres_archivos:
         df = pd.read_csv(ruta)
@@ -120,8 +122,37 @@ def cargar_datos():
                 for tau in range(1, 5):  # Estratos del 1 al 4
                     col = f"si pertenece a estrato {tau}"
                     data["ζ_τp"][planta][tau] = int(fila[col])
+        
+        if parametro == "x_pv0":
+            df = pd.read_csv(ruta)
+            data["x_pv0"] = {}
+
+            for _, fila in df.iterrows():
+                planta = int(fila["Planta"])
+                area_verde = int(fila["Area verde"])
+                unidades = int(fila["Unidades"])
+
+                if planta not in data["x_pv0"]:
+                    data["x_pv0"][planta] = {}
+                data["x_pv0"][planta][area_verde] = unidades
+
+        if parametro == "e_0vr":
+            df = pd.read_csv(ruta)
+            data["e_0vr"] = {}
+
+            for _, fila in df.iterrows():
+                area = int(fila["area verde"])
+                riego = int(fila["Riegos"])
+                valor = int(fila["valor"])
+
+                if area not in data["e_0vr"]:
+                    data["e_0vr"][area] = {}
+
+                data["e_0vr"][area][riego] = valor
     
-    data["M"] = 100000000000000000000000
+    data["M"] = 10**10
+
+    data["D"] = 1.3
 
     print ("\n SE CARGAN LOS DATOS\n")
 

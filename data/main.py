@@ -7,7 +7,7 @@ directorio_base = os.path.dirname(os.path.abspath(__file__))
 
 carpeta_entrada = os.path.join(directorio_base, 'carpeta_entrada')
 carpeta_salida = os.path.join(directorio_base, 'carpeta_salida')
-archivo_original = os.path.join(carpeta_entrada, 'original.xlsx')
+archivo_original = os.path.join(carpeta_entrada, 'original_2.xlsx')
 
 archivo_lista = os.path.join(directorio_base, 'lista_archivos.txt')
 

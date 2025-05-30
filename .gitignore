@@ -1,1 +1,6 @@
-prueba.py
+# Ignorar todo por defecto
+/*
+
+# Exceptuar la carpeta grupo41gurobi y todo su contenido
+!grupo41gurobi/
+!grupo41gurobi/**
